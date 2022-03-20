@@ -11,18 +11,22 @@ class Formatter
 
   def initialize(params)
     @params = params['format'].split(',')
-  end
-
-  def check_format
-    @valid, @invalid = @params.partition { |format| TIME_FORMATS[format] }
+    @valid = []
+    @invalid = []
   end
 
   def success?
+    @params.each do |format|
+      if TIME_FORMATS[format]
+        @valid << TIME_FORMATS[format]
+      else
+        @invalid << format
+      end
+    end
     @invalid.empty?
   end
 
   def time
-    formats = @valid.map { |format| TIME_FORMATS[format]}
-    Time.now.strftime(formats.join('-'))
+    Time.now.strftime(@valid.join('-'))
   end
 end

@@ -3,45 +3,32 @@ require_relative 'formatter'
 class App
 
   def call(env)
-    @request = Rack::Request.new(env)
-    response
-    [status, headers, body]
+    status, body = request(env)
+    response(status, body)
   end
 
   private
 
-  def response
-    return wrong_path unless @request.path_info == '/time'
-    @formatter = Formatter.new(@request.params)
-    @formatter.check_format
-    return unknown_format unless @formatter.success?
-    formatted_time
+  def request(env)
+    return wrong_path unless env['REQUEST_PATH'] == '/time'
+    formatter = Formatter.new(Rack::Request.new(env).params)
+    return unknown_format(formatter) unless formatter.success?
+    [200, formatter.time]
   end
 
-  def status
-    @status_code
+  def response(status, body)
+    Rack::Response.new(body, status, headers).finish
   end
 
   def headers
     { 'Content-Type' => 'text/plain' }
   end
 
-  def body
-    ["#{@message}"]
-  end
-
-  def formatted_time
-    @status_code = 200
-    @message = @formatter.time
-  end
-
-  def unknown_format
-    @status_code = 400
-    @message = "Unknown time format(s): #{@formatter.invalid}"
-  end
-
   def wrong_path
-    @status_code = 404
-    @message = 'Page not found'
+    [404, 'Page not found']
+  end
+
+  def unknown_format(formatter)
+    [400, "Unknown time format(s): #{formatter.invalid}"]
   end
 end
