@@ -3,17 +3,17 @@ require_relative 'formatter'
 class App
 
   def call(env)
-    status, body = request(env)
-    response(status, body)
+    return wrong_path unless env['REQUEST_PATH'] == '/time'
+    parse_params(env)
   end
 
   private
 
-  def request(env)
-    return wrong_path unless env['REQUEST_PATH'] == '/time'
+  def parse_params(env)
     formatter = Formatter.new(Rack::Request.new(env).params)
-    return unknown_format(formatter) unless formatter.success?
-    [200, formatter.time]
+    formatter.sort_params
+    return unknown_format(formatter) unless formatter.invalid.empty?
+    response(200, formatter.time)
   end
 
   def response(status, body)
@@ -25,10 +25,10 @@ class App
   end
 
   def wrong_path
-    [404, 'Page not found']
+    [404, headers, ['Page not found']]
   end
 
   def unknown_format(formatter)
-    [400, "Unknown time format(s): #{formatter.invalid}"]
+    [400, headers, ["Unknown time format(s): #{formatter.invalid}"]]
   end
 end

@@ -15,7 +15,7 @@ class Formatter
     @invalid = []
   end
 
-  def success?
+  def sort_params
     @params.each do |format|
       if TIME_FORMATS[format]
         @valid << TIME_FORMATS[format]
@@ -23,7 +23,6 @@ class Formatter
         @invalid << format
       end
     end
-    @invalid.empty?
   end
 
   def time
