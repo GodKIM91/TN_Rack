@@ -25,6 +25,10 @@ class Formatter
     end
   end
 
+  def full_correct?
+    @invalid.empty?
+  end
+
   def time
     Time.now.strftime(@valid.join('-'))
   end
